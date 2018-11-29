@@ -60,5 +60,8 @@ dependencies {
 	// lombok
 	compile('org.projectlombok:lombok:1.18.2')
 	
+	// 添加 Markdown parser 依赖
+	compile('es.nitaur.markdown:txtmark:0.16')
+	
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
