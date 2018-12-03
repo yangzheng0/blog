@@ -1,54 +1,72 @@
-/**
+/*!
+  * Bolg main JS.
  * 
+ * @since: 1.0.0 2017/3/9
+ * @author Way Lau <https://waylau.com>
  */
+"use strict";
+//# sourceURL=main.js
+ 
+// DOM 加载完再执行
 $(function() {
 	
-	var _pageSize;
+	var _pageSize; // 存储用于搜索
 	
-	//根据用户名，页面索引，页面大小获取用户列表
-	function getUersByName(pageIndex,pageSize){
-		debugger;
-		$.ajax({
-			url:"/users",
-			contentType:'application/json',
-			data:{
-				"asunc":true,
-				"pageIndex":pageIndex,
-				"pageSize":pageSize,
-				"name":$("#searchName").val()
-			},
-			success:function(data){
-				$("#mainContainer").html(data);
-			},
-			error:function(){
-				toastr.error("error!");
-			}
-		});
+	// 根据用户名、页面索引、页面大小获取用户列表
+	function getUersByName(pageIndex, pageSize) {
+		 $.ajax({ 
+			 url: "/users", 
+			 contentType : 'application/json',
+			 data:{
+				 "async":true, 
+				 "pageIndex":pageIndex,
+				 "pageSize":pageSize,
+				 "name":$("#searchName").val()
+			 },
+			 success: function(data){
+				 $("#mainContainer").html(data);
+		     },
+		     error : function() {
+		    	 toastr.error("error!");
+		     }
+		 });
 	}
 	
+	// 分页
+	$.tbpage("#mainContainer", function (pageIndex, pageSize) {
+		getUersByName(pageIndex, pageSize);
+		_pageSize = pageSize;
+	});
+   
+	// 搜索
+	$("#searchNameBtn").click(function() {
+		getUersByName(0, _pageSize);
+	});
+	
+	// 获取添加用户的界面
 	$("#addUser").click(function() {
-			$.ajax({
-				url:"/users/add",
-				success:function(data){
-					$("#userFormContainer").html(data);
-				},
-				error:function(data){
-					toastr.error("error!")
-				}
-			})
-		}
-	);
-	//获取编辑用户的界面
-	$("#rightContainer").on("click",".blog-edit-user",function(){
-		ajax({
-			url:"/users/edit/"+$(this).attr("userId"),
-			success:function(data){
-				$("#userFormContainer").html(data);
-			},
-			error : function(){
-				toastr.error("error!")
-			}
-		})
+		$.ajax({ 
+			 url: "/users/add", 
+			 success: function(data){
+				 $("#userFormContainer").html(data);
+		     },
+		     error : function(data) {
+		    	 toastr.error("error!");
+		     }
+		 });
+	});
+	
+	// 获取编辑用户的界面
+	$("#rightContainer").on("click",".blog-edit-user", function () { 
+		$.ajax({ 
+			 url: "/users/edit/" + $(this).attr("userId"), 
+			 success: function(data){
+				 $("#userFormContainer").html(data);
+		     },
+		     error : function() {
+		    	 toastr.error("error!");
+		     }
+		 });
 	});
 	
 	// 提交变更后，清空表单
@@ -56,10 +74,10 @@ $(function() {
 		$.ajax({ 
 			 url: "/users", 
 			 type: 'POST',
-			 data: $('#userForm').serialize(),
+			 data:$('#userForm').serialize(),
 			 success: function(data){
 				 $('#userForm')[0].reset();  
-				 console.log(data);
+				 
 				 if (data.success) {
 					 // 从新刷新主界面
 					 getUersByName(0, _pageSize);
@@ -100,4 +118,4 @@ $(function() {
 		     }
 		 });
 	});
-})
+});
