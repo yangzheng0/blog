@@ -10,11 +10,13 @@
 // DOM 加载完再执行
 $(function() {
 	
-	var _pageSize; // 存储用于搜索
+	var _pageSize = 10; // 存储用于搜索
 	
 	// 根据用户名、页面索引、页面大小获取用户列表
 	function getUersByName(pageIndex, pageSize) {
-		 $.ajax({ 
+		console.log("刷新页面");
+		debugger;
+		$.ajax({ 
 			 url: "/users", 
 			 contentType : 'application/json',
 			 data:{

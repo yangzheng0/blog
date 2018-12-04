@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
-<head th:replace="~{fragments/header :: header}">
-</head>
-<body>
-	<div class="container blog-content-container">
+
 		<div class="card-header bg-dark font-white">
 			<div class="input-group col-md-7 col-xl-6">
 				<input type="text" class="form-control" id="searchName"
@@ -83,10 +75,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
-	<div th:replace="~{fragments/footer :: footer}">...</div>
+
 	
 	<!-- JavaScript -->
 <script src="../../js/users/main.js" th:src="@{/js/users/main.js}"></script>
-</body>
-</html>

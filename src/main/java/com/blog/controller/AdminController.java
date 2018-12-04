@@ -13,7 +13,7 @@ import com.blog.vo.Menu;
 
 @Controller
 @RequestMapping("/admins")
-public class AdminCpntroller {
+public class AdminController {
 	
 	@GetMapping
 	public ModelAndView listUsers(Model model){
