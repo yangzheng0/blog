@@ -54,4 +54,23 @@ public interface BlogService {
 	 * @param id
 	 */
 	void readingIncrease(Long id);
+	
+	/*
+	 * 发表评论
+	 * <p>Title: createComment</p>  
+	 * <p>Description: </p>  
+	 * @param blogId
+	 * @param commentContent
+	 * @return
+	 */
+	Blog createComment(Long blogId,String commentContent);
+
+	/*
+	 * 删除评论
+	 * <p>Title: removeComment</p>  
+	 * <p>Description: </p>  
+	 * @param blogId
+	 * @param commentId
+	 */
+	void removeComment(Long blogId,Long commentId);
 }

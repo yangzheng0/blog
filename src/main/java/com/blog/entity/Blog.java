@@ -18,6 +18,8 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.github.rjeschke.txtmark.Processor;
+
 @Entity
 public class Blog implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -38,14 +40,14 @@ public class Blog implements Serializable{
 
 	@Lob  // 大对象，映射 MySQL 的 Long Text 类型
 	@Basic(fetch=FetchType.LAZY) // 懒加载
-	@NotEmpty(message = "内容不能为空")
+	@NotEmpty(message = "content内容不能为空")
 	@Size(min=2)
 	@Column(nullable = false) // 映射为字段，值不能为空
 	private String content;
 	
 	@Lob  // 大对象，映射 MySQL 的 Long Text 类型
 	@Basic(fetch=FetchType.LAZY) // 懒加载
-	@NotEmpty(message = "内容不能为空")
+	@NotEmpty(message = "htmlContent内容不能为空")
 	@Size(min=2)
 	@Column(nullable = false) // 映射为字段，值不能为空
 	private String htmlContent; // 将 md 转为 html
@@ -62,7 +64,7 @@ public class Blog implements Serializable{
 	private Long reading = 0L; // 访问量、阅读量
 	 
 	@Column(name="comments")
-	private Long comments = 0L;  // 评论量
+	private Long commentSize = 0L;  // 评论量
 
 	@Column(name="likes")
 	private Long likes = 0L;  // 点赞量
@@ -108,6 +110,7 @@ public class Blog implements Serializable{
 
 	public void setContent(String content) {
 		this.content = content;
+		this.htmlContent = Processor.process(content);
 	}
 
 	public String getHtmlContent() {
@@ -142,12 +145,12 @@ public class Blog implements Serializable{
 		this.reading = reading;
 	}
 
-	public Long getComments() {
-		return comments;
+	public Long getCommentSize() {
+		return commentSize;
 	}
 
-	public void setComments(Long comments) {
-		this.comments = comments;
+	public void setComments(Long commentSize) {
+		this.commentSize = commentSize;
 	}
 
 	public Long getLikes() {
@@ -158,5 +161,8 @@ public class Blog implements Serializable{
 		this.likes = likes;
 	}
 	
+	public void addComment(Comment comment){
+		this.comments.add(comment);
+	}
 	
 }

@@ -2,12 +2,15 @@ package com.blog.service;
 
 import javax.transaction.Transactional;
 
+import org.apache.catalina.security.SecurityClassLoad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.blog.entity.Blog;
+import com.blog.entity.Comment;
 import com.blog.entity.User;
 import com.blog.repository.BlogRepository;
 
@@ -73,6 +76,39 @@ public class BlogServiceImpl implements BlogService {
 		Blog blog = blogRepository.findOne(id);
 		blog.setReading(blog.getReading()+1);
 		blogRepository.save(blog);
+	}
+
+	/*
+	 * 发表评论
+	 *(non-Javadoc)  
+	 * <p>Title: createComment</p>  
+	 * <p>Description: </p>  
+	 * @param blogId
+	 * @param commentContent
+	 * @return  
+	 * @see com.blog.service.BlogService#createComment(java.lang.Long, java.lang.String)
+	 */
+	@Override
+	public Blog createComment(Long blogId, String commentContent) {
+		Blog originalBlog = blogRepository.findOne(blogId);
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Comment comment = new Comment(commentContent,user);
+		originalBlog.
+		return null;
+	}
+
+	/*
+	 * 删除评论
+	 *(non-Javadoc)  
+	 * <p>Title: removeComment</p>  
+	 * <p>Description: </p>  
+	 * @param blogId
+	 * @param commentId  
+	 * @see com.blog.service.BlogService#removeComment(java.lang.Long, java.lang.Long)
+	 */
+	@Override
+	public void removeComment(Long blogId, Long commentId) {
+		
 	}
 
 }
