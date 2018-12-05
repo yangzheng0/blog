@@ -56,6 +56,7 @@ public class MainController {
 	public String registerUser(User user){
 		List<Authority> authorities = new ArrayList<>();
 		authorities.add(authoritService.getAuthorityById(ROLE_USER_AUTHORITY_ID));
+		user.setAuthorities(authorities);
 		userService.saveUser(user);
 		return "redirect:/login";
 	}
