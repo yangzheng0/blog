@@ -2,6 +2,7 @@ package com.blog.entity;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -12,11 +13,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotEmpty;
+
+import com.github.rjeschke.txtmark.Processor;
 
 @Entity
 public class Blog implements Serializable{
@@ -38,19 +43,19 @@ public class Blog implements Serializable{
 
 	@Lob  // 大对象，映射 MySQL 的 Long Text 类型
 	@Basic(fetch=FetchType.LAZY) // 懒加载
-	@NotEmpty(message = "内容不能为空")
+	@NotEmpty(message = "content内容不能为空")
 	@Size(min=2)
 	@Column(nullable = false) // 映射为字段，值不能为空
 	private String content;
 	
 	@Lob  // 大对象，映射 MySQL 的 Long Text 类型
 	@Basic(fetch=FetchType.LAZY) // 懒加载
-	@NotEmpty(message = "内容不能为空")
+	@NotEmpty(message = "htmlContent内容不能为空")
 	@Size(min=2)
 	@Column(nullable = false) // 映射为字段，值不能为空
 	private String htmlContent; // 将 md 转为 html
 	
-	@OneToOne(cascade=CascadeType.DETACH)
+	@OneToOne(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
 	@JoinColumn(name="user_id")
 	private User user;
 	
@@ -58,21 +63,34 @@ public class Blog implements Serializable{
 	@org.hibernate.annotations.CreationTimestamp  // 由数据库自动创建时间
 	private Timestamp createTime;
 
-	@Column(name="reading")
-	private Long reading = 0L; // 访问量、阅读量
+	@Column(name="readSize")
+	private Integer readSize = 0; // 访问量、阅读量
 	 
-	@Column(name="comments")
-	private Long comments = 0L;  // 评论量
+	@Column(name="commentSize")
+	private Integer commentSize = 0;  // 评论量
 
-	@Column(name="likes")
-	private Long likes = 0L;  // 点赞量
+	@Column(name="voteSize")
+	private Integer voteSize = 0;  // 点赞量
+	
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable(name = "blog_comment", joinColumns = @JoinColumn(name = "blog_id", referencedColumnName = "id"), 
+		inverseJoinColumns = @JoinColumn(name = "comment_id", referencedColumnName = "id"))
+	private List<Comment> comments;
+	
+	@OneToMany(cascade=CascadeType.ALL,fetch=FetchType.LAZY)
+	@JoinTable(name = "blog_vote", joinColumns = @JoinColumn(name = "blog_id", referencedColumnName = "id"), 
+	inverseJoinColumns = @JoinColumn(name = "vote_id", referencedColumnName = "id"))
+	private List<Vote> votes;
+	
+	@OneToOne(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+	@JoinColumn(name="catalog_id")
+	private Catalog catalog;
 
-	public Blog() {
+	protected Blog() {
 
 	}
 
 	public Blog(String title, String summary, String content) {
-		super();
 		this.title = title;
 		this.summary = summary;
 		this.content = content;
@@ -108,6 +126,7 @@ public class Blog implements Serializable{
 
 	public void setContent(String content) {
 		this.content = content;
+		this.htmlContent = Processor.process(content);
 	}
 
 	public String getHtmlContent() {
@@ -134,29 +153,108 @@ public class Blog implements Serializable{
 		this.createTime = createTime;
 	}
 
-	public Long getReading() {
-		return reading;
+
+
+	public Integer getCommentSize() {
+		return commentSize;
 	}
 
-	public void setReading(Long reading) {
-		this.reading = reading;
+	public void setCommentSize(Integer commentSize) {
+		this.commentSize = commentSize;
 	}
 
-	public Long getComments() {
+	public Integer getReadSize() {
+		return readSize;
+	}
+
+	public void setReadSize(Integer readSize) {
+		this.readSize = readSize;
+	}
+
+	public Integer getVoteSize() {
+		return voteSize;
+	}
+
+	public void setVoteSize(Integer voteSize) {
+		this.voteSize = voteSize;
+	}
+
+	public List<Comment> getComments() {
 		return comments;
 	}
 
-	public void setComments(Long comments) {
+	public void setComments(List<Comment> comments) {
 		this.comments = comments;
+		this.commentSize = this.comments.size();
 	}
 
-	public Long getLikes() {
-		return likes;
+	public List<Vote> getVotes() {
+		return votes;
 	}
 
-	public void setLikes(Long likes) {
-		this.likes = likes;
+	public void setVotes(List<Vote> votes) {
+		this.votes = votes;
+	}
+
+	/**
+	 * 添加评论
+	 */
+	public void addComment(Comment comment){
+		this.comments.add(comment);
+	}
+
+	/**
+	 * 删除评论
+	 */
+	public void removeComment(Long commentId){
+		for (int i = 0; i < this.comments.size(); i++) {
+			if(comments.get(i).getId()==commentId){
+				this.comments.remove(i);
+			}
+		}
+		this.commentSize = this.comments.size();
 	}
 	
+	/*
+	 * 点赞
+	 * <p>Title: addVote</p>  
+	 * <p>Description: </p>  
+	 * @param vote
+	 * @return
+	 */
+	public boolean addVote(Vote vote){
+		boolean isExist = false;
+		// 判断重复
+		for (int index=0; index < this.votes.size(); index ++ ) {
+			if (this.votes.get(index).getUser().getId() == vote.getUser().getId()) {
+				isExist = true;
+				break;
+			}
+		}
+		
+		if (!isExist) {
+			this.votes.add(vote);
+			this.voteSize = this.votes.size();
+		}
+
+		return isExist;
+		
+	}
 	
+	public void removeVote(Long voteId){
+		boolean isExist = false;
+		//判断重复
+		for (int i = 0; i < this.votes.size(); i++) {
+			this.votes.remove(i);
+			break;
+		}
+		this.voteSize = this.votes.size();
+	}
+	
+	public Catalog getCatalog() {
+		return catalog;
+	}
+	public void setCatalog(Catalog catalog) {
+		this.catalog = catalog;
+	}
 }
