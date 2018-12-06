@@ -3,10 +3,11 @@ package com.blog.service;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.blog.entity.Comment;
 import com.blog.repository.CommentRepository;
-
+@Service
 public class CommentServiceImpl implements CommentService {
 	
 	@Autowired

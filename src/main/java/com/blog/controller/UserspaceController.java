@@ -27,6 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.blog.entity.Blog;
 import com.blog.entity.User;
+import com.blog.entity.Vote;
 import com.blog.service.BlogService;
 import com.blog.service.UserService;
 import com.blog.util.ConstraintViolationExceptionHandler;
@@ -149,22 +150,38 @@ public class UserspaceController {
 	 */
 	@GetMapping("/{username}/blogs/{id}")
 	public String getBlogById(@PathVariable("username") String username,@PathVariable("id") Long id, Model model) {
+		User principal = null;
+		Blog blog = blogService.getBlogById(id);
+		
 		// 每次读取，简单的可以认为阅读量增加1次
 		blogService.readingIncrease(id);
-		
-		boolean isBlogOwner = false;
-		
+
 		// 判断操作用户是否是博客的所有者
+		boolean isBlogOwner = false;
 		if (SecurityContextHolder.getContext().getAuthentication() !=null && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
 				 &&  !SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString().equals("anonymousUser")) {
-			User principal = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+			principal = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
 			if (principal !=null && username.equals(principal.getUsername())) {
 				isBlogOwner = true;
 			} 
 		}
- 
+		
+		// 判断操作用户的点赞情况
+		List<Vote> votes = blog.getVotes();
+		Vote currentVote = null; // 当前用户的点赞情况
+		
+		if (principal !=null) {
+			for (Vote vote : votes) {
+				if(vote.getUser().getUsername().equals(principal.getUsername())){
+					currentVote = vote;
+					break;
+				}
+			}
+		}
+
 		model.addAttribute("isBlogOwner", isBlogOwner);
-		model.addAttribute("blogModel",blogService.getBlogById(id));
+		model.addAttribute("blogModel",blog);
+		model.addAttribute("currentVote",currentVote);
 		
 		return "/userspace/blog";
 	}
