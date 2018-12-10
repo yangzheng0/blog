@@ -3,11 +3,13 @@ package com.blog.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.blog.entity.Catalog;
 import com.blog.entity.User;
 import com.blog.repository.CatalogRepository;
 
+@Service
 public class CatalogServiceImpl implements CatalogService {
 	
 	@Autowired
@@ -15,22 +17,27 @@ public class CatalogServiceImpl implements CatalogService {
 
 	@Override
 	public Catalog saveCatalog(Catalog catalog) {
-		return null;
+		//判断重复
+		List<Catalog> list = catalogRepository.findByUserAndName(catalog.getUser(), catalog.getName());
+		if(list!=null&&list.size()>0){
+			throw new IllegalArgumentException("该分类已经存在了");
+		}
+		return catalogRepository.save(catalog);
 	}
 
 	@Override
 	public void removeCatalog(Long id) {
-		
+		catalogRepository.delete(id);
 	}
 
 	@Override
 	public Catalog getCatalogById(Long id) {
-		return null;
+		return catalogRepository.findOne(id);
 	}
 
 	@Override
 	public List<Catalog> listCatalogs(User user) {
-		return null;
+		return catalogRepository.findByUser(user);
 	}
 
 
