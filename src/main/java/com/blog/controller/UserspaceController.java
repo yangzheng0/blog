@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blog.entity.Blog;
+import com.blog.entity.Catalog;
 import com.blog.entity.User;
 import com.blog.entity.Vote;
 import com.blog.service.BlogService;
+import com.blog.service.CatalogService;
 import com.blog.service.UserService;
 import com.blog.util.ConstraintViolationExceptionHandler;
 import com.blog.vo.Response;
@@ -46,6 +48,9 @@ public class UserspaceController {
 	
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	CatalogService catalogService;
 	
 	@GetMapping("/{username}")
 	public String userSpace(@PathVariable("username") String username, Model model) {
@@ -195,7 +200,6 @@ public class UserspaceController {
 	@DeleteMapping("/{username}/blogs/{id}")
 	@PreAuthorize("authentication.name.equals(#username)") 
 	public ResponseEntity<Response> deleteBlog(@PathVariable("username") String username,@PathVariable("id") Long id) {
-		
 		try {
 			blogService.removeBlog(id);
 		} catch (Exception e) {
@@ -212,8 +216,12 @@ public class UserspaceController {
 	 * @return
 	 */
 	@GetMapping("/{username}/blogs/edit")
-	public ModelAndView createBlog(Model model) {
+	public ModelAndView createBlog(@PathVariable("username") String username,Model model) {
+		User user = (User)userDetailsService.loadUserByUsername(username);
+		List<Catalog> catalogs = catalogService.listCatalogs(user);
+		
 		model.addAttribute("blog", new Blog(null, null, null));
+		model.addAttribute("catalogs", catalogs);
 		return new ModelAndView("/userspace/blogedit", "blogModel", model);
 	}
 	
@@ -224,13 +232,18 @@ public class UserspaceController {
 	 */
 	@GetMapping("/{username}/blogs/edit/{id}")
 	public ModelAndView editBlog(@PathVariable("username") String username,@PathVariable("id") Long id, Model model) {
+		// 获取用户分类列表
+		User user = (User)userDetailsService.loadUserByUsername(username);
+		List<Catalog> catalogs = catalogService.listCatalogs(user);
+		
 		model.addAttribute("blog", blogService.getBlogById(id));
+		model.addAttribute("catalogs", catalogs);
 		return new ModelAndView("/userspace/blogedit", "blogModel", model);
 	}
 	
 	/**
 	 * 保存博客
-	 * @param username
+	 * @param username 
 	 * @param blog
 	 * @return
 	 */
@@ -238,12 +251,30 @@ public class UserspaceController {
 	@PreAuthorize("authentication.name.equals(#username)") 
 	public ResponseEntity<Response> saveBlog(@PathVariable("username") String username, 
 			@RequestBody Blog blog) {
-		User user = (User)userDetailsService.loadUserByUsername(username);
-		blog.setUser(user);
+		//对catalog进行空处理
+		if(blog.getCatalog().getId() == null){
+			return ResponseEntity.ok().body(new Response(false, "未选择分类"));
+		}
 		try {
-			blogService.saveBlog(blog);
-		} catch (ConstraintViolationException e)  {
-			return ResponseEntity.ok().body(new Response(false, ConstraintViolationExceptionHandler.getMessage(e)));
+			//判断是修改还是新增
+			if(blog.getId()!=null){
+				//修改
+				Blog orignalBlog = blogService.getBlogById(blog.getId());
+				orignalBlog.setTitle(blog.getTitle());
+				orignalBlog.setContent(blog.getContent());
+				orignalBlog.setSummary(blog.getSummary());
+				orignalBlog.setCatalog(blog.getCatalog());
+				orignalBlog.setTags(blog.getTags());
+				blogService.saveBlog(orignalBlog);
+			}else{
+				//新增
+				User user = (User)userDetailsService.loadUserByUsername(username);
+				blog.setUser(user);
+				blogService.saveBlog(blog);
+			}
+			
+		}catch(ConstraintViolationException e){
+			return ResponseEntity.ok().body(new Response(false,ConstraintViolationExceptionHandler.getMessage(e)));	
 		} catch (Exception e) {
 			return ResponseEntity.ok().body(new Response(false, e.getMessage()));
 		}

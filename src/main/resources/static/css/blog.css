@@ -88,3 +88,15 @@ article img {
 	margin-right: 26px;
 	height: 30px;
 }
+
+.blog-add-catalog{
+	margin-left: 123px;
+}
+
+.blog-list-group-item {
+	padding: .75rem 1.25rem;
+	border: 1px solid rgba(0,0,0,.125);
+}
+.blog-delete-catalog{
+	margin-right: 10px;
+}

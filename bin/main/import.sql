@@ -6,3 +6,6 @@ INSERT INTO authority (id, name) VALUES (2, 'ROLE_USER');
 
 INSERT INTO user_authority (user_id, authority_id) VALUES (1, 1);
 INSERT INTO user_authority (user_id, authority_id) VALUES (2, 2);
+
+INSERT INTO catalog (NAME, user_id) VALUES ("java", 1);
+INSERT INTO catalog (NAME, user_id) VALUES ("spring", 1);

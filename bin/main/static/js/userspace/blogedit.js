@@ -24,6 +24,12 @@ $(function(){
 	
 	$(".form-control-chosen").chosen();
 	
+    // 初始化标签
+    $('.form-control-tag').tagsInput({
+    	'defaultText':'输入标签'
+ 
+    });
+	
 	//图片上传
 	$("#uploadImage").click(function(){
 		$.ajax({
@@ -57,7 +63,9 @@ $(function(){
 				"id":Number($('#id').val()),
 				"title":$('#title').val(),
 				"summary":$("#summary").val(),
-				"content":$('#md').val()
+				"content":$('#md').val(),
+				"catalog":{"id":$('#catalogSelect').val()},
+				"tags":$('.form-control-tag').val()
 			}),
 			beforeSend:function(request){
 				request.setRequestHeader(csrfHeader,csrfToken);
