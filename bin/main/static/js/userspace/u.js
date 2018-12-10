@@ -2,7 +2,7 @@ $(function() {
 	// 获取分类列表
 	function getCatalogs(username) {
 		// 获取 CSRF Token 
- 
+		
 		$.ajax({ 
 			 url: '/catalogs', 
 			 type: 'GET', 

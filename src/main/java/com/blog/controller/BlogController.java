@@ -11,8 +11,9 @@ public class BlogController {
 	
 	@GetMapping
 	public String listBlogs(@RequestParam(value="order",required=false,defaultValue="new")String order,
-							@RequestParam(value="tag",required=false)Long tag){
+							@RequestParam(value="tag",required=false)Long tag,
+							@RequestParam(value="async",required=false) boolean async){
 		System.out.println("order:"+order+";tag"+tag);
-		return "redirect:/index?order="+order+"&tag="+tag;
+		return (async==true?"/index :: #mainContainerRepleace":"/index");
 	}
 }
