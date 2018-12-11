@@ -1,5 +1,6 @@
 package com.blog.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -72,6 +73,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		return userRepository.findByUsername(username);
+	}
+
+	/*
+	 * 根据名称列表查询用户
+	 * <p>Title: listUsersByUsernames</p>  
+	 * <p>Description: </p>  
+	 * @param usernames
+	 * @return  
+	 * @see com.blog.service.UserService#listUsersByUsernames(java.util.Collection)
+	 */
+	@Override
+	public List<User> listUsersByUsernames(Collection<String> usernames) {
+		return userRepository.findByUsernameIn(usernames);
 	}
 
 }

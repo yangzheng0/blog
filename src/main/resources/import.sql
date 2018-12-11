@@ -9,3 +9,4 @@ INSERT INTO user_authority (user_id, authority_id) VALUES (2, 2);
 
 INSERT INTO catalog (NAME, user_id) VALUES ("java", 1);
 INSERT INTO catalog (NAME, user_id) VALUES ("spring", 1);
+

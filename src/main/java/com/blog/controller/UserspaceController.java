@@ -93,12 +93,12 @@ public class UserspaceController {
 			//最热查询
 			Sort sort = new Sort(Direction.DESC,"reading","comments","likes");
 			Pageable pageable = new PageRequest(pageIndex, pageSize);
-			page = blogService.listBlogsByTitleLikeAndSort(user, keyword, pageable);
+			page = blogService.listBlogsByTitleVoteAndSort(user, keyword, pageable);
 		}
 		
 		if (order.equals("new")) { // 最新查询
 			Pageable pageable = new PageRequest(pageIndex, pageSize);
-			page = blogService.listBlogsByTitleLike(user, keyword, pageable);
+			page = blogService.listBlogsByTitleVote(user, keyword, pageable);
 		}
  
 		

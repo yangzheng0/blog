@@ -14,7 +14,7 @@ public interface EsBlogService {
 	/*
 	 * 删除
 	 */
-	void removeEsBlog();
+	void removeEsBlog(String id);
 	
 	/*
 	 * 更新
@@ -24,7 +24,7 @@ public interface EsBlogService {
 	/*
 	 * 根据id获取Blog
 	 */
-	void getEsBlogByBlogId(Long blogId);
+	EsBlog getEsBlogByBlogId(Long blogId);
 	
 	/*
 	 * 最新博客列表,分页

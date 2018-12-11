@@ -9,9 +9,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.blog.entity.Blog;
+import com.blog.entity.Catalog;
 import com.blog.entity.Comment;
 import com.blog.entity.User;
 import com.blog.entity.Vote;
+import com.blog.entity.es.EsBlog;
 import com.blog.repository.BlogRepository;
 
 @Service
@@ -19,14 +21,29 @@ public class BlogServiceImpl implements BlogService {
 
 	@Autowired
 	private BlogRepository blogRepository;
-
+	@Autowired
+	private EsBlogService esBlogService;
+ 
 	/* (non-Javadoc)
 	 * @see com.waylau.spring.boot.blog.service.BlogService#saveBlog(com.waylau.spring.boot.blog.domain.Blog)
 	 */
 	@Transactional
 	@Override
 	public Blog saveBlog(Blog blog) {
-		return blogRepository.save(blog);
+		boolean isNew = (blog.getId() == null);
+		EsBlog esBlog = null;
+		
+		Blog returnBlog = blogRepository.save(blog);
+		
+		if (isNew) {
+			esBlog = new EsBlog(returnBlog);
+		} else {
+			esBlog = esBlogService.getEsBlogByBlogId(blog.getId());
+			esBlog.update(returnBlog);
+		}
+		
+		esBlogService.updateEsBlog(esBlog);
+		return returnBlog;
 	}
 
 	/* (non-Javadoc)
@@ -36,15 +53,8 @@ public class BlogServiceImpl implements BlogService {
 	@Override
 	public void removeBlog(Long id) {
 		blogRepository.delete(id);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.waylau.spring.boot.blog.service.BlogService#updateBlog(com.waylau.spring.boot.blog.domain.Blog)
-	 */
-	@Transactional
-	@Override
-	public Blog updateBlog(Blog blog) {
-		return blogRepository.save(blog);
+		EsBlog esblog = esBlogService.getEsBlogByBlogId(id);
+		esBlogService.removeEsBlog(esblog.getId());
 	}
 
 	/* (non-Javadoc)
@@ -56,98 +66,68 @@ public class BlogServiceImpl implements BlogService {
 	}
 
 	@Override
-	public Page<Blog> listBlogsByTitleLike(User user, String title, Pageable pageable) {
+	public Page<Blog> listBlogsByTitleVote(User user, String title, Pageable pageable) {
 		// 模糊查询
 		title = "%" + title + "%";
-		Page<Blog> blogs = blogRepository.findByUserAndTitleLikeOrderByCreateTimeDesc(user, title, pageable);
+		//Page<Blog> blogs = blogRepository.findByUserAndTitleLikeOrderByCreateTimeDesc(user, title, pageable);
+		String tags = title;
+		Page<Blog> blogs = blogRepository.findByTitleLikeAndUserOrTagsLikeAndUserOrderByCreateTimeDesc(title,user, tags,user, pageable);
 		return blogs;
 	}
 
 	@Override
-	public Page<Blog> listBlogsByTitleLikeAndSort(User user, String title, Pageable pageable) {
+	public Page<Blog> listBlogsByTitleVoteAndSort(User user, String title, Pageable pageable) {
 		// 模糊查询
 		title = "%" + title + "%";
 		Page<Blog> blogs = blogRepository.findByUserAndTitleLike(user, title, pageable);
+		return blogs;
+	}
+	
+	@Override
+	public Page<Blog> listBlogsByCatalog(Catalog catalog, Pageable pageable) {
+		Page<Blog> blogs = blogRepository.findByCatalog(catalog, pageable);
 		return blogs;
 	}
 
 	@Override
 	public void readingIncrease(Long id) {
 		Blog blog = blogRepository.findOne(id);
-		blog.setReadSize(blog.getReadSize()+1);
-		blogRepository.save(blog);
+		blog.setReadSize(blog.getCommentSize()+1);
+		this.saveBlog(blog);
 	}
 
-	/*
-	 * 发表评论
-	 *(non-Javadoc)  
-	 * <p>Title: createComment</p>  
-	 * <p>Description: </p>  
-	 * @param blogId
-	 * @param commentContent
-	 * @return  
-	 * @see com.blog.service.BlogService#createComment(java.lang.Long, java.lang.String)
-	 */
 	@Override
 	public Blog createComment(Long blogId, String commentContent) {
 		Blog originalBlog = blogRepository.findOne(blogId);
-		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Comment comment = new Comment(commentContent,user);
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+		Comment comment = new Comment(user, commentContent);
 		originalBlog.addComment(comment);
-		return blogRepository.save(originalBlog);
+		return this.saveBlog(originalBlog);
 	}
 
-	/*
-	 * 删除评论
-	 *(non-Javadoc)  
-	 * <p>Title: removeComment</p>  
-	 * <p>Description: </p>  
-	 * @param blogId
-	 * @param commentId  
-	 * @see com.blog.service.BlogService#removeComment(java.lang.Long, java.lang.Long)
-	 */
 	@Override
 	public void removeComment(Long blogId, Long commentId) {
 		Blog originalBlog = blogRepository.findOne(blogId);
 		originalBlog.removeComment(commentId);
-		blogRepository.save(originalBlog);
+		this.saveBlog(originalBlog);
 	}
 
-	/*
-	 * 点赞
-	 *(non-Javadoc)  
-	 * <p>Title: createVote</p>  
-	 * <p>Description: </p>  
-	 * @param blogId
-	 * @return  
-	 * @see com.blog.service.BlogService#createVote(java.lang.Long)
-	 */
 	@Override
 	public Blog createVote(Long blogId) {
-		Blog origionalBlog = blogRepository.findOne(blogId);
-		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Blog originalBlog = blogRepository.findOne(blogId);
+		User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
 		Vote vote = new Vote(user);
-		boolean isExist = origionalBlog.addVote(vote);
+		boolean isExist = originalBlog.addVote(vote);
 		if (isExist) {
 			throw new IllegalArgumentException("该用户已经点过赞了");
 		}
-		return blogRepository.save(origionalBlog);
+		return this.saveBlog(originalBlog);
 	}
 
-	/*
-	 * 取消点赞
-	 *(non-Javadoc)  
-	 * <p>Title: removeVote</p>  
-	 * <p>Description: </p>  
-	 * @param blogId
-	 * @param voteId  
-	 * @see com.blog.service.BlogService#removeVote(java.lang.Long, java.lang.Long)
-	 */
 	@Override
 	public void removeVote(Long blogId, Long voteId) {
 		Blog originalBlog = blogRepository.findOne(blogId);
 		originalBlog.removeVote(voteId);
-		blogRepository.save(originalBlog);
+		this.saveBlog(originalBlog);
 	}
-
 }

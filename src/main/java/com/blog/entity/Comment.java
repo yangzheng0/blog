@@ -32,6 +32,12 @@ public class Comment implements Serializable {
 	}
 
 
+	public Comment(User user2, String commentContent) {
+		this.content = content;
+		this.user = user;
+	}
+
+
 	@Id	//主键
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;//用户的唯一标识

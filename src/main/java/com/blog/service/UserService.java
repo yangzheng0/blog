@@ -1,5 +1,6 @@
 package com.blog.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -62,4 +63,13 @@ public interface UserService {
 	 * @return
 	 */
 	Page<User> listUsersByNameLike(String name, Pageable pageable);
+
+	/*
+	 * 根据名称列表查询
+	 * <p>Title: listUsersByUsernames</p>  
+	 * <p>Description: </p>  
+	 * @param usernames
+	 * @return
+	 */
+	List<User> listUsersByUsernames(Collection<String> usernames);
 }
